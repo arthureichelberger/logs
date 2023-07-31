@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/arthureichelberger/logs/pkg/psql"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
 )
@@ -18,6 +19,21 @@ func main() {
 
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+
+	// Packages
+	db, err := psql.Connect(
+		ctx,
+		env("POSTGRES_USER", "logs"),
+		env("POSTGRES_PASSWORD", "logs"),
+		env("POSTGRES_HOST", "localhost"),
+		env("POSTGRES_PORT", "5432"),
+		env("POSTGRES_DATABASE", "logs"),
+	)
+	if err != nil {
+		log.Error().Err(err).Msg("failed to connect to database")
+		return
+	}
+	_ = db
 
 	router := gin.New()
 
